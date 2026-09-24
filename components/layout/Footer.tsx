@@ -92,7 +92,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://sacred-snuff.com/my-account/"
+                  href="https://sacredconnection.com/my-account/"
                   className="hover:text-[var(--gold-light)]"
                 >
                   My Account

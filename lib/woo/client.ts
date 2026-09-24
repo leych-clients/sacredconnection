@@ -1,8 +1,8 @@
-const DEFAULT_STORE_URL = "https://sacred-snuff.com";
+const DEFAULT_STORE_URL = "https://sacredconnection.com";
 
 export function getStoreUrl(): string {
   return (
-    process.env.NEXT_PUBLIC_WC_STORE_URL?.replace(/\/$/, "") || DEFAULT_STORE_URL
+    process.env.PUBLIC_STORE_URL?.replace(/\/$/, "") || DEFAULT_STORE_URL
   );
 }
 
@@ -30,8 +30,8 @@ export type StoreFetchOptions = {
   headers?: HeadersInit;
 };
 
-/** Cart/checkout GETs are session-specific via Cart-Token. LiteSpeed on
- * sacred-snuff.com caches `/wc/store/v1/cart` as public and does not vary on
+/** Cart/checkout GETs are session-specific via Cart-Token. LiteSpeed on the
+ * WooCommerce host caches `/wc/store/v1/cart` as public and does not vary on
  * Cart-Token, so uncached URLs are required or every shopper shares one ghost cart.
  */
 function withCartCacheBust(path: string): string {
@@ -73,13 +73,27 @@ export async function storeFetch<T>(
     headers["Nonce"] = nonce;
   }
 
-  const res = await fetch(`${getStoreApiBase()}${withCartCacheBust(path)}`, {
+  const requestInit: RequestInit = {
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
     cache: cache ?? "no-store",
     next,
-  });
+    // sacred-snuff.com 301s to sacredconnection.com. Fetch follows 301/302 by
+    // rewriting POST to GET, and WooCommerce then returns rest_no_route.
+    redirect: "manual",
+  };
+
+  let res = await fetch(
+    `${getStoreApiBase()}${withCartCacheBust(path)}`,
+    requestInit
+  );
+  if (res.status === 301 || res.status === 302 || res.status === 307 || res.status === 308) {
+    const location = res.headers.get("location");
+    if (location) {
+      res = await fetch(new URL(location, getStoreApiBase()), requestInit);
+    }
+  }
 
   const newCartToken =
     res.headers.get("Cart-Token") ||

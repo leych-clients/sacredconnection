@@ -59,7 +59,7 @@ The Next.js client already cache-busts cart/checkout URLs as a workaround, but e
 ## Env vars (Vercel / `.env.local`)
 
 ```
-NEXT_PUBLIC_WC_STORE_URL=https://sacred-snuff.com
+PUBLIC_STORE_URL=https://sacredconnection.com
 WC_CONSUMER_KEY=ck_...
 WC_CONSUMER_SECRET=cs_...
 REVALIDATE_SECRET=long-random-string
