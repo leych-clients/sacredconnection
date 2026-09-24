@@ -5,12 +5,12 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "sacred-snuff.com",
+        hostname: "sacredconnection.com",
         pathname: "/**",
       },
       {
         protocol: "https",
-        hostname: "**.sacred-snuff.com",
+        hostname: "**.sacredconnection.com",
         pathname: "/**",
       },
       {
