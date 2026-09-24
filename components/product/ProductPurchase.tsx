@@ -12,9 +12,38 @@ import {
 
 type PurchaseType = "one-time" | "subscribe";
 
+function isWeightAttribute(name: string): boolean {
+  const normalized = name.trim().toLowerCase();
+  return normalized === "peso" || normalized === "weight";
+}
+
+function attributeLabel(name: string): string {
+  return isWeightAttribute(name) ? "Weight" : name;
+}
+
+function initialSelection(product: StoreProduct): Record<string, string> {
+  const selected: Record<string, string> = {};
+  for (const attr of product.attributes) {
+    if (!attr.has_variations || !attr.terms?.length) continue;
+    if (!isWeightAttribute(attr.name) && product.attributes.some((a) => isWeightAttribute(a.name))) {
+      continue;
+    }
+    const term = attr.terms[0];
+    if (term) selected[attr.name.toLowerCase()] = term.name.toLowerCase();
+  }
+  return selected;
+}
+
 export function ProductPurchase({ product }: { product: StoreProduct }) {
   const [qty, setQty] = useState(1);
-  const [selected, setSelected] = useState<Record<string, string>>({});
+  const [selected, setSelected] = useState<Record<string, string>>(() =>
+    initialSelection(product)
+  );
+  const [selectionProductId, setSelectionProductId] = useState(product.id);
+  if (selectionProductId !== product.id) {
+    setSelectionProductId(product.id);
+    setSelected(initialSelection(product));
+  }
   const [purchaseType, setPurchaseType] = useState<PurchaseType>("one-time");
   const [frequency, setFrequency] = useState<SubscriptionFrequency>("monthly");
 
@@ -81,7 +110,9 @@ export function ProductPurchase({ product }: { product: StoreProduct }) {
 
       {attrOptions.map((attr) => (
         <div key={attr.id} className="mb-5">
-          <label className="mb-2 block text-sm font-semibold">{attr.name}</label>
+          <label className="mb-2 block text-sm font-semibold">
+            {attributeLabel(attr.name)}
+          </label>
           <div className="flex flex-wrap gap-2">
             {attr.terms.map((term) => {
               const active =
